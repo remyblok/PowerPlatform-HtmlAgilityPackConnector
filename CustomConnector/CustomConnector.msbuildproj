@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.Build.NoTargets/3.7.56">
+	<PropertyGroup>
+		<TargetFrameworks>net46</TargetFrameworks>
+		<AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
+		<DefineConstants>$(DefineConstants);NETSTANDARD2_0;NETSTANDARD</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="*.*" Exclude="$(MSBuildProjectFile);$(MSBuildProjectFile).user" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<PaconnCli Condition="$(PaconnCli)==''">paconn.exe</PaconnCli>
+		<SettingsFile>settings.json</SettingsFile>
+		<ForceLogin>false</ForceLogin>
+		<OAuth2Secret></OAuth2Secret>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<PaconnCliLoginCommand>$(PaconnCli) login</PaconnCliLoginCommand>
+		<PaconnCliUpdateCommand>$(PaconnCli) update --settings $(SettingsFile)</PaconnCliUpdateCommand>
+	</PropertyGroup>
+	<PropertyGroup Condition="$(ForceLogin)=='true'">
+		<PaconnCliLoginCommand>$(PaconnCliLoginCommand) --force</PaconnCliLoginCommand>
+	</PropertyGroup>
+	<PropertyGroup Condition="$(OAuth2Secret)!=''">
+		<PaconnCliUpdateCommand>$(PaconnCliUpdateCommand) --secret $(OAuth2Secret)</PaconnCliUpdateCommand>
+	</PropertyGroup>
+
+	<Target Name="PublishToDataverse" BeforeTargets="AfterBuild" Condition="$(Configuration)=='release'">
+		<Exec Command="$(PaconnCliLoginCommand)" Timeout="300000" />
+		<Exec Command="$(PaconnCliUpdateCommand)" Timeout="300000" />
+	</Target>
+
+	<Target Name="ResolveAssemblyReferences"></Target>
+</Project>
