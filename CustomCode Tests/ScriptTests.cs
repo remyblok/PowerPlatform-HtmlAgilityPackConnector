@@ -24,7 +24,7 @@ namespace CustomCode.Tests
 			_loggerFactory?.Dispose();
 		}
 
-		private IScriptContext CreateContextWithQueryRequest(IEnumerable<Script.Query> queries)
+		private IScriptContext CreateContextWithQueryRequest(IEnumerable<Script.HtmlQuery> queries)
 		{
 			var request = new Script.QueryRequest()
 			{
@@ -47,10 +47,10 @@ namespace CustomCode.Tests
 		public async Task TestSingleSelector()
 		{
 			//arrange
-			var context = CreateContextWithQueryRequest(new List<Script.Query>
+			var context = CreateContextWithQueryRequest(new List<Script.HtmlQuery>
 				{
-					new Script.Query {
-						XPath = "//h1"
+					new Script.HtmlQuery {
+						Query = "//h1"
 					}
 				});
 			var sut = new Script.QueryDocumentFromStringProcessor(context);
@@ -70,10 +70,10 @@ namespace CustomCode.Tests
 		public async Task TestSingleSelectorWithId()
 		{
 			//arrange
-			var context = CreateContextWithQueryRequest(new List<Script.Query>
+			var context = CreateContextWithQueryRequest(new List<Script.HtmlQuery>
 				{
-					new Script.Query {
-						XPath = "//h1",
+					new Script.HtmlQuery {
+						Query = "//h1",
 						Id = "header"
 					}
 				});
@@ -94,10 +94,10 @@ namespace CustomCode.Tests
 		public async Task TestSingleSelectorWithAttribute()
 		{
 			//arrange
-			var context = CreateContextWithQueryRequest(new List<Script.Query>
+			var context = CreateContextWithQueryRequest(new List<Script.HtmlQuery>
 				{
-					new Script.Query {
-						XPath = "//a",
+					new Script.HtmlQuery {
+						Query = "//a",
 						Id = "href",
 						Attribute = "href"
 					}
@@ -119,10 +119,10 @@ namespace CustomCode.Tests
 		public async Task TestSingleSelectorWithNoResult()
 		{
 			//arrange
-			var context = CreateContextWithQueryRequest(new List<Script.Query>
+			var context = CreateContextWithQueryRequest(new List<Script.HtmlQuery>
 				{
-					new Script.Query {
-						XPath = "//h2"
+					new Script.HtmlQuery {
+						Query = "//h2"
 					}
 				});
 			var sut = new Script.QueryDocumentFromStringProcessor(context);
@@ -142,10 +142,10 @@ namespace CustomCode.Tests
 		public async Task TestMultiSelector()
 		{
 			//arrange
-			var context = CreateContextWithQueryRequest(new List<Script.Query>
+			var context = CreateContextWithQueryRequest(new List<Script.HtmlQuery>
 				{
-					new Script.Query {
-						XPath = "//p",
+					new Script.HtmlQuery {
+						Query = "//p",
 						SelectMultiple = true
 					}
 				});
@@ -170,11 +170,11 @@ namespace CustomCode.Tests
 		public async Task TestMultiSelectorWithAttribute()
 		{
 			//arrange
-			var context = CreateContextWithQueryRequest(new List<Script.Query>
+			var context = CreateContextWithQueryRequest(new List<Script.HtmlQuery>
 				{
-					new Script.Query {
+					new Script.HtmlQuery {
 						Id = "meta",
-						XPath = "//meta[@content]",
+						Query = "//meta[@content]",
 						SelectMultiple = true,
 						Attribute = "content"
 					}
@@ -202,10 +202,10 @@ namespace CustomCode.Tests
 		public async Task TestMultiSelectorWithNoResult()
 		{
 			//arrange
-			var context = CreateContextWithQueryRequest(new List<Script.Query>
+			var context = CreateContextWithQueryRequest(new List<Script.HtmlQuery>
 				{
-					new Script.Query {
-						XPath = "//ul",
+					new Script.HtmlQuery {
+						Query = "//ul",
 						SelectMultiple = true
 					}
 				});
@@ -230,10 +230,10 @@ namespace CustomCode.Tests
 		public async Task TestInvalidXpath()
 		{
 			//arrange
-			var context = CreateContextWithQueryRequest(new List<Script.Query>
+			var context = CreateContextWithQueryRequest(new List<Script.HtmlQuery>
 				{
-					new Script.Query {
-						XPath = "[@id='x']",
+					new Script.HtmlQuery {
+						Query = "[@id='x']",
 						Id = "x"
 					}
 				});
@@ -258,10 +258,10 @@ namespace CustomCode.Tests
 		public async Task TestPowerAutomateDesktopQuery()
 		{
 			//arrange
-			var context = CreateContextWithQueryRequest(new List<Script.Query>
+			var context = CreateContextWithQueryRequest(new List<Script.HtmlQuery>
 				{
-					new Script.Query {
-						XPath = "html > body > div > p:eq(1) > a",
+					new Script.HtmlQuery {
+						Query = "html > body > div > p:eq(1) > a",
 						Id = "a"
 					}
 				});
@@ -290,10 +290,10 @@ namespace CustomCode.Tests
 			var request = new Script.QueryRequest()
 			{
 				Url = "https://example.com",
-				Queries = new List<Script.Query>
+				Queries = new List<Script.HtmlQuery>
 				{
-					new Script.Query {
-						XPath = "//h1"
+					new Script.HtmlQuery {
+						Query = "//h1"
 					}
 				}
 			};

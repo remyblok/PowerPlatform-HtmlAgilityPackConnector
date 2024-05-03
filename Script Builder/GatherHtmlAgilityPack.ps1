@@ -1,6 +1,6 @@
 param($htmlAgilityPackSourceLocation, $outFile)
 
-$excludedFiles = "crc32.cs","HtmlCmdLine.cs", "HtmlConsoleListener.cs","HtmlWeb*.cs","InvalidProgramException.cs","IOLibrary.cs","MimeTypeMap.cs","MixedCodeDocument*.cs","NameValuePair.cs","Trace.FullFramework.cs","full.cs"
+$excludedFiles = "crc32.cs","HtmlCmdLine.cs", "HtmlConsoleListener.cs","HtmlWeb*.cs","InvalidProgramException.cs","IOLibrary.cs","MimeTypeMap.cs","MixedCodeDocument*.cs","NameValuePair.cs","Trace.FullFramework.cs"
 $files = Get-ChildItem "$htmlAgilityPackSourceLocation\HtmlAgilityPack.Shared\*.cs" -Exclude $excludedFiles
 
 $firstFile = $true;

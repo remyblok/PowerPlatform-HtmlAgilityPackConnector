@@ -1,27 +1,199 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Connector Name",
-    "description": "Connector description.",
+    "title": "Query HTML Document",
+    "description": "Query HTML Document using the HTML Agility Pack",
     "version": "1.0"
   },
-  "host": "example.org:443",
-  "basePath": "/v1/",
+  "host": "none.invalid",
+  "basePath": "/",
   "schemes": [
     "https"
   ],
   "consumes": [],
   "produces": [],
   "paths": {
-    "/test": {
+    "/Internal-GetSchema": {
+      "post": {
+        "x-ms-visibility": "internal",
+        "operationId": "Internal-GetSchema",
+        "description": "Get Schema",
+        "summary": "Get Schema",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "queries": {
+                  "$ref": "#/definitions/Queries"
+                }
+              },
+              "required": [ "queries" ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "default",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        }
+      }
+    },
+    "/QueryDocumentFromString": {
+      "post": {
+        "summary": "Execute Query to HTML document",
+        "description": "Executes the queries against de supplied HTML document",
+        "operationId": "QueryDocumentFromString",
+        "x-ms-visibility": "important",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "html": {
+                  "type": "string",
+                  "description": "The HTML document to query against",
+                  "title": "HTML Document"
+                },
+                "queries": {
+                  "$ref": "#/definitions/Queries"
+                }
+              },
+              "required": [ "html", "queries" ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/dynamicSchema"
+          },
+          "400": {
+            "$ref": "#/responses/error"
+          }
+
+        }
+      }
+    },
+    "/QueryDocumentFromUrl": {
+      "post": {
+        "summary": "Execute Query to downloaded HTML document",
+        "description": "Executes the dueries against the HTML document retrieved from the url",
+        "operationId": "QueryDocumentFromUrl",
+        "x-ms-visibility": "important",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "description": "URL of the HTML document to query against",
+                  "title": "Url to HTML Document"
+                },
+                "queries": {
+                  "$ref": "#/definitions/Queries"
+                }
+              },
+              "required": [ "url", "queries" ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/dynamicSchema"
+          },
+          "400": {
+            "$ref": "#/responses/error"
+          }
+
+        }
+      }
     }
   },
-  "definitions": {},
-  "parameters": {},
-  "responses": {},
-  "securityDefinitions": {
+  "definitions": {
+    "Queries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The Query to execute. Can be an XPath query or a Power Automate Desktop Css path",
+            "title": "query",
+            "x-ms-visibility": "important"
+          },
+          "id": {
+            "type": "string",
+            "description": "Query ID for unique identification",
+            "title": "Query ID"
+          },
+          "selectMultiple": {
+            "type": "boolean",
+            "description": "Select a single result node or a list of result nodes",
+            "title": "Multiple results"
+          },
+          "attribute": {
+            "type": "string",
+            "description": "Select the specified attribute of the queried nodes",
+            "title": "Attribute"
+          }
+        },
+        "required": ["query"] 
+      },
+      "title": "Queries",
+      "description": "List of all queries to execute"
+    }
   },
-  "security": [
-  ],
+  "parameters": {},
+  "responses": {
+    "dynamicSchema": {
+      "description": "Query Results",
+      "schema": {
+        "type": "object",
+        "x-ms-dynamic-schema": {
+          "operationId": "Internal-GetSchema",
+          "parameters": {
+            "queries": {
+              "parameter": "queries"
+            }
+          }
+        },
+        "x-ms-dynamic-properties": {
+          "operationId": "Internal-GetSchema",
+          "parameters": {
+            "body/queries": {
+              "parameterReference": "body/queries"
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "description": "Error",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {},
+  "security": [],
   "tags": []
 }

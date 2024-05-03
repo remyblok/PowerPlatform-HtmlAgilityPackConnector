@@ -1,10 +1,8 @@
 {
   "properties": {
     "connectionParameters": {},
-    "iconBrandColor": "#ffffff",
-    "scriptOperations": [ "OperationId" ],
+    "iconBrandColor": "#007ee5",
     "capabilities": [],
-    "publisher": "",
-    "stackOwner": ""
+    "publisher": "Remy Blok"
   }
 }

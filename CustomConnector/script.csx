@@ -34,6 +34,9 @@ public partial class Script : ScriptBase
 				case "QueryDocumentFromUrl":
 					var urlProcessor = new QueryDocumentFromUrlProcessor(Context);
 					return await urlProcessor.Process(CancellationToken).ConfigureAwait(false);
+				case "Internal.GetSchema":
+					var schemaProcessor = new GetSchemaProcessor(Context);
+					return await schemaProcessor.Process(CancellationToken).ConfigureAwait(false);
 
 				default:
 					return await Context.SendAsync(Context.Request, CancellationToken).ConfigureAwait(false);
@@ -185,32 +188,84 @@ public partial class Script : ScriptBase
 		}
 	}
 
+	public class GetSchemaProcessor
+	{
+		private IScriptContext _context;
+
+		public GetSchemaProcessor(IScriptContext context)
+		{
+			_context = context;
+		}
+
+		internal async Task<HttpResponseMessage> Process(CancellationToken cancellationToken)
+		{
+			string content = await _context.Request.Content.ReadAsStringAsync() ?? throw new ArgumentException("Request does not include a valid body");
+			var request = JsonConvert.DeserializeObject<QueryRequest>(content) ?? throw new ArgumentException("Request does not include a valid body");
+
+			var properties = new JObject();
+			var schema = new JObject
+			{
+				{ "type", "object" },
+				{ "properties", properties }
+			};
+
+			foreach (var query in request.Queries)
+			{
+				var querySchema = new JObject
+				{
+					{ "type", "string" },
+				};
+
+
+				if (query.SelectMultiple)
+				{
+					var itemSchema = querySchema;
+					querySchema = new JObject
+					{
+						{ "type", "array" },
+						{ "items", itemSchema }
+
+					};
+				}
+
+				properties.Add(query.Id ?? query.Query, querySchema);
+			}
+
+			return new HttpResponseMessage()
+			{
+				Content = CreateJsonContent(schema.ToString())
+			};
+
+		}
+	}
+
 	public class QueryRequest
 	{
 		public string? Url { get; set; }
 		public string? Html { get; set; }
 
-		public IEnumerable<Query> Queries { get; set; } = null!;
+		public IEnumerable<HtmlQuery> Queries { get; set; } = null!;
 	}
 
-	public class Query
+	public class HtmlQuery
 	{
 		public string? Id { get; set; }
-		public string XPath { get; set; } = null!;
-		public XPathExpression? CompiledXPath { get; private set; }
+		public string Query { get; set; } = null!;
+		public XPathExpression? CompiledQuery { get; private set; }
 		public bool SelectMultiple { get; set; }
 		public string? Attribute { get; set; }
 
 		public void CompileXPath()
 		{
+			var query = Query;
 			// Try convert a css selector from Power Automate Desktop to Xpath Query
-			if (XPath.StartsWith("html >"))
+			if (query.StartsWith("html >"))
 			{
-				XPath = "//" + XPath.Replace(" > ", "/");
-				XPath = Regex.Replace(XPath, @":eq\((?<no>\d)\)", m => "[" + (int.TryParse(m.Groups["no"].Value, out int no) ? no + 1 : m.Groups["no"].Value) + "]");
+				query = "//" + Query.Replace(" > ", "/");
+				query = Regex.Replace(Query, @":eq\((?<no>\d)\)", m => "[" + (int.TryParse(m.Groups["no"].Value, out int no) ? no + 1 : m.Groups["no"].Value) + "]");
 			}
 
-			CompiledXPath = XPathExpression.Compile(XPath);
+			CompiledQuery = XPathExpression.Compile(query);
 		}
 	}
 }
