@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CustomCode.Tests
 {
 	[TestClass]
-	public class ScriptTests
+	public class QueryTests
 	{
 		private static TestContext _testContext = null!;
 		private static MsTestLoggerFactory _loggerFactory = null!;
@@ -344,14 +344,68 @@ namespace CustomCode.Tests
 			var response = await sut.Process(_testContext.CancellationTokenSource.Token).ConfigureAwait(false);
 
 			//assert
-			Assert.AreEqual(HttpMethod.Get, context.Request.Method);
-			Assert.AreEqual("https://example.com/", context.Request.RequestUri.ToString());
+			//Assert.AreEqual(HttpMethod.Get, context.Request.Method);
+			//Assert.AreEqual("https://example.com/", context.Request.RequestUri.ToString());
 
 			var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
 			JObject result = JObject.Parse(responseBody);
 			Assert.IsTrue(result.ContainsKey("//h1"), "Expected //h1 property");
 			Assert.AreEqual("Example Domain", result["//h1"]!.Value<string>());
+		}
+
+		[TestMethod]
+		public async Task TestSingleMultipleFromUrl()
+		{
+			//arrange
+			HttpResponseMessage sendAsyncResult = new HttpResponseMessage(HttpStatusCode.OK);
+			sendAsyncResult.Content = new StringContent(File.ReadAllText("Resources\\Test.html"), Encoding.UTF8, "text/html");
+
+			var request = new Script.QueryRequest()
+			{
+				Url = "https://www.spellenhuis.nl/bordspellen/tweede-kans/",
+				Queries = new List<Script.HtmlQuery>
+				{
+					new Script.HtmlQuery {
+						Query = "//div[@class='row cms-listing-row js-listing-wrapper']//a[starts-with(@class, 'product-image-link')]",
+						Id = "games",
+						SelectMultiple = true,
+						ResultMode = Script.ResultMode.Attribute,
+						Attribute = "title"
+					},
+					new Script.HtmlQuery {
+						Query = "//div[@class='row cms-listing-row js-listing-wrapper']//a[starts-with(@class, 'product-image-link')]",
+						Id = "games",
+						SelectMultiple = true,
+						ResultMode = Script.ResultMode.Attribute,
+						Attribute = "title"
+					},
+				}
+			};
+
+			IScriptContext context = new UnitTestContext(_loggerFactory, "QueryDocumentFromUrl", sendAsyncResult)
+			{
+				Request = new HttpRequestMessage()
+				{
+					Method = HttpMethod.Post,
+					Content = ScriptBase.CreateJsonContent(JsonConvert.SerializeObject(request))
+				}
+			};
+
+			var sut = new Script.QueryDocumentFromUrlProcessor(context);
+
+			//act
+			var response = await sut.Process(_testContext.CancellationTokenSource.Token).ConfigureAwait(false);
+
+			//assert
+			//Assert.AreEqual(HttpMethod.Get, context.Request.Method);
+			//Assert.AreEqual("https://www.spellenhuis.nl/bordspellen/tweede-kans/", context.Request.RequestUri.ToString());
+
+			var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+			JObject result = JObject.Parse(responseBody);
+			//Assert.IsTrue(result.ContainsKey("//h1"), "Expected //h1 property");
+			//Assert.AreEqual("Example Domain", result["//h1"]!.Value<string>());
 		}
 	}
 }

@@ -20,12 +20,15 @@
 
 		public ILogger Logger { get; }
 
-		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 		{
 			if (request != Request)
-				throw new NotImplementedException();
+			{
+				HttpClient client = new HttpClient();
+				return await client.SendAsync(request, cancellationToken);
+			}
 
-			return Task.FromResult(_sendAsyncResult!);
+			return _sendAsyncResult!;
 		}
 	}
 }

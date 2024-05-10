@@ -29,7 +29,7 @@ public partial class Script : ScriptBase
 				case "QueryDocumentFromUrl":
 					var urlProcessor = new QueryDocumentFromUrlProcessor(Context);
 					return await urlProcessor.Process(CancellationToken).ConfigureAwait(false);
-				case "Internal.GetSchema":
+				case "Internal-GetSchema":
 					var schemaProcessor = new GetSchemaProcessor(Context);
 					return await schemaProcessor.Process(CancellationToken).ConfigureAwait(false);
 
@@ -57,11 +57,8 @@ public partial class Script : ScriptBase
 			if (string.IsNullOrWhiteSpace(Request?.Url))
 				throw new ArgumentException("Url is not provided", "url");
 
-			//var request = new HttpRequestMessage(HttpMethod.Get, Request!.Url);
-			Context.Request.Content = null;
-			Context.Request.Method = HttpMethod.Get;
-			Context.Request.RequestUri = new Uri(Request!.Url);
-			var response = await Context.SendAsync(Context.Request, token);
+			var request = new HttpRequestMessage(HttpMethod.Get, Request!.Url);
+			var response = await Context.SendAsync(request, token);
 
 			if (!response.Content.Headers.ContentType.MediaType.ToLowerInvariant().StartsWith("text/html"))
 				throw new InvalidOperationException("Retrieved document from URL is not an HTML document");
@@ -226,7 +223,11 @@ public partial class Script : ScriptBase
 					{ "type", "string" },
 				};
 
-				if (!(query.ResultMode == ResultMode.Text || query.ResultMode == ResultMode.Attribute))
+				if (query.ResultMode == ResultMode.Attribute)
+				{
+					querySchema.Add("x-nullable", "true");
+				}
+				else if (query.ResultMode != ResultMode.Text)
 				{
 					querySchema.Add("format", "html");
 				}

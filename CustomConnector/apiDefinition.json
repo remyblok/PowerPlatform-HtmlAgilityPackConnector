@@ -31,7 +31,9 @@
                   "$ref": "#/definitions/Queries"
                 }
               },
-              "required": [ "queries" ]
+              "required": [
+                "queries"
+              ]
             }
           }
         ],
@@ -69,7 +71,10 @@
                   "$ref": "#/definitions/Queries"
                 }
               },
-              "required": [ "html", "queries" ]
+              "required": [
+                "html",
+                "queries"
+              ]
             }
           }
         ],
@@ -80,7 +85,6 @@
           "400": {
             "$ref": "#/responses/error"
           }
-
         }
       }
     },
@@ -107,7 +111,10 @@
                   "$ref": "#/definitions/Queries"
                 }
               },
-              "required": [ "url", "queries" ]
+              "required": [
+                "url",
+                "queries"
+              ]
             }
           }
         ],
@@ -118,7 +125,6 @@
           "400": {
             "$ref": "#/responses/error"
           }
-
         }
       }
     }
@@ -149,7 +155,12 @@
             "type": "string",
             "description": "Select a single result node or a list of result nodes",
             "title": "Multiple results",
-            "enum": [ "innerHtml", "outerHtml", "text", "attribute" ],
+            "enum": [
+              "innerHtml",
+              "outerHtml",
+              "text",
+              "attribute"
+            ],
             "x-ms-visibility": "advanced",
             "x-ms-enum": {
               "name": "Result Mode",
@@ -184,7 +195,9 @@
             "x-ms-visibility": "advanced"
           }
         },
-        "required": ["query"] 
+        "required": [
+          "query"
+        ]
       },
       "title": "Queries",
       "description": "List of all queries to execute"
