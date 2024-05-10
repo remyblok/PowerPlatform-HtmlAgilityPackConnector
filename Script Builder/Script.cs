@@ -212,15 +212,25 @@ public partial class Script : ScriptBase
 			var properties = new JObject();
 			var schema = new JObject
 			{
+				{ "x-ms-summary", "Query Results"},
+				{ "description", "All query results" },
 				{ "type", "object" },
-				{ "properties", properties }
+				{ "properties", properties },
+
 			};
 
 			foreach (var query in request.Queries)
 			{
+				string name = query.Id ?? query.Query;
+
+				if (string.IsNullOrEmpty(name))
+					continue;
+
 				var querySchema = new JObject
 				{
 					{ "type", "string" },
+					{ "x-ms-summary", "'name'" },
+					{ "description", $"Result for '{name}'"},
 				};
 
 				if (query.ResultMode == ResultMode.Attribute)
@@ -238,11 +248,13 @@ public partial class Script : ScriptBase
 					querySchema = new JObject
 					{
 						{ "type", "array" },
-						{ "items", itemSchema }
+						{ "items", itemSchema },
+						{ "x-ms-summary", $"List of '{name}'"},
+						{ "description", $"List of results for '{name}'"},
 					};
 				}
 
-				properties.Add(query.Id ?? query.Query, querySchema);
+				properties.Add(name, querySchema);
 			}
 
 			return new HttpResponseMessage()

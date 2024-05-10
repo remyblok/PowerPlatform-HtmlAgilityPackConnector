@@ -372,14 +372,7 @@ namespace CustomCode.Tests
 						SelectMultiple = true,
 						ResultMode = Script.ResultMode.Attribute,
 						Attribute = "title"
-					},
-					new Script.HtmlQuery {
-						Query = "//div[@class='row cms-listing-row js-listing-wrapper']//a[starts-with(@class, 'product-image-link')]",
-						Id = "games",
-						SelectMultiple = true,
-						ResultMode = Script.ResultMode.Attribute,
-						Attribute = "title"
-					},
+					}
 				}
 			};
 

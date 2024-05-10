@@ -65,7 +65,7 @@
                 "html": {
                   "type": "string",
                   "description": "The HTML document to query against",
-                  "title": "HTML Document"
+                  "x-ms-summary": "HTML Document"
                 },
                 "queries": {
                   "$ref": "#/definitions/Queries"
@@ -105,7 +105,7 @@
                 "url": {
                   "type": "string",
                   "description": "URL of the HTML document to query against",
-                  "title": "Url to HTML Document"
+                  "x-ms-summary": "Url to HTML Document"
                 },
                 "queries": {
                   "$ref": "#/definitions/Queries"
@@ -137,24 +137,24 @@
         "properties": {
           "query": {
             "type": "string",
-            "description": "The Query to execute. Can be an XPath query or a Power Automate Desktop Css path",
-            "title": "query",
+            "description": "The Query to execute. Can be an XPath query or a Power Automate Desktop CSS path",
+            "x-ms-summary": "Query",
             "x-ms-visibility": "important"
           },
           "id": {
             "type": "string",
             "description": "Query ID for unique identification",
-            "title": "Query ID"
+            "x-ms-summary": "Query ID"
           },
           "selectMultiple": {
             "type": "boolean",
             "description": "Select a single result node or a list of result nodes",
-            "title": "Multiple results"
+            "x-ms-summary": "Multiple results"
           },
           "resultMode": {
             "type": "string",
-            "description": "Select a single result node or a list of result nodes",
-            "title": "Multiple results",
+            "description": "Specify what result is retrured from the result nodes",
+            "x-ms-summary": "Result Mode",
             "enum": [
               "innerHtml",
               "outerHtml",
@@ -191,7 +191,7 @@
           "attribute": {
             "type": "string",
             "description": "Select the specified attribute of the queried nodes",
-            "title": "Attribute",
+            "x-ms-summary": "Attribute",
             "x-ms-visibility": "advanced"
           }
         },
@@ -199,7 +199,7 @@
           "query"
         ]
       },
-      "title": "Queries",
+      "x-ms-summary": "Queries",
       "description": "List of all queries to execute"
     }
   },
