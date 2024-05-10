@@ -2,7 +2,7 @@
   "connectorId": "shared_query-20html-20documen-5f9450320ea4374a68-5f0286e043ca7da361",
   "environment": "5097feb1-7dc1-e7f6-b484-9955fc15895b",
   "apiProperties": "apiProperties.json",
-  "apiDefinition": "apiDefinition.json",
+  "apiDefinition": "apiDefinition.swagger.json",
   "icon": "icon.png",
   "powerAppsUrl": "https://api.powerapps.com",
   "powerAppsApiVersion": "2016-11-01",
