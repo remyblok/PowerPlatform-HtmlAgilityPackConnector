@@ -145,10 +145,43 @@
             "description": "Select a single result node or a list of result nodes",
             "title": "Multiple results"
           },
+          "resultMode": {
+            "type": "string",
+            "description": "Select a single result node or a list of result nodes",
+            "title": "Multiple results",
+            "enum": [ "innerHtml", "outerHtml", "text", "attribute" ],
+            "x-ms-visibility": "advanced",
+            "x-ms-enum": {
+              "name": "Result Mode",
+              "values": [
+                {
+                  "value": "innerHtml",
+                  "desciption": "Select the HTML inside the queried node",
+                  "name": "Inner HTML"
+                },
+                {
+                  "value": "outerHtml",
+                  "desciption": "Select the full queried node",
+                  "name": "Outer HTML"
+                },
+                {
+                  "value": "text",
+                  "desciption": "Select all text inside the queried node and child nodes",
+                  "name": "Text Only"
+                },
+                {
+                  "value": "attribute",
+                  "desciption": "Select specific attribute from the node",
+                  "name": "Specific Attribute"
+                }
+              ]
+            }
+          },
           "attribute": {
             "type": "string",
             "description": "Select the specified attribute of the queried nodes",
-            "title": "Attribute"
+            "title": "Attribute",
+            "x-ms-visibility": "advanced"
           }
         },
         "required": ["query"] 

@@ -99,6 +99,7 @@ namespace CustomCode.Tests
 					new Script.HtmlQuery {
 						Query = "//a",
 						Id = "href",
+						ResultMode = Script.ResultMode.Attribute,
 						Attribute = "href"
 					}
 				});
@@ -176,6 +177,7 @@ namespace CustomCode.Tests
 						Id = "meta",
 						Query = "//meta[@content]",
 						SelectMultiple = true,
+						ResultMode = Script.ResultMode.Attribute,
 						Attribute = "content"
 					}
 				});
@@ -227,6 +229,35 @@ namespace CustomCode.Tests
 		}
 
 		[TestMethod]
+		public async Task TestMultiSelectorWithHtmlFragmentResult()
+		{
+			//arrange
+			var context = CreateContextWithQueryRequest(new List<Script.HtmlQuery>
+				{
+					new Script.HtmlQuery {
+						Id="query",
+						Query = "//div",
+						SelectMultiple = true
+					}
+				});
+			var sut = new Script.QueryDocumentFromStringProcessor(context);
+
+			//act
+			var response = await sut.Process(_testContext.CancellationTokenSource.Token).ConfigureAwait(false);
+
+			//assert
+			var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+			JObject result = JObject.Parse(responseBody);
+			Assert.IsTrue(result.ContainsKey("query"), "Expected query property");
+			Assert.IsTrue(result["query"] is JArray, "Expected property to be array");
+			if (result["query"] is JArray array)
+			{
+				Assert.AreEqual(1, array.Count);
+			}
+		}
+
+		[TestMethod]
 		public async Task TestInvalidXpath()
 		{
 			//arrange
@@ -249,7 +280,7 @@ namespace CustomCode.Tests
 
 			JObject result = JObject.Parse(responseBody);
 			Assert.IsTrue(result.ContainsKey("error"), "Expected error property");
-			Assert.AreEqual("Invalid XPath query for x", result["error"]!.Value<string>());
+			Assert.AreEqual("Invalid query for x", result["error"]!.Value<string>());
 		}
 
 		//

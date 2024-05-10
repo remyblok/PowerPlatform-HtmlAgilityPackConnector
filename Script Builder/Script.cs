@@ -109,7 +109,7 @@ public partial class Script : ScriptBase
 			{
 				try
 				{
-					query.CompileXPath();
+					query.CompileQuery();
 				}
 				catch (XPathException)
 				{
@@ -117,7 +117,7 @@ public partial class Script : ScriptBase
 					{
 						Content = CreateJsonContent(JsonConvert.SerializeObject(new
 						{
-							error = $"Invalid XPath query for {query.Id ?? query.XPath}"
+							error = $"Invalid query for {query.Id ?? query.Query}"
 						}))
 					};
 				}
@@ -138,11 +138,11 @@ public partial class Script : ScriptBase
 
 			foreach (var query in Request!.Queries)
 			{
-				var id = query.Id ?? query.XPath;
+				var id = query.Id ?? query.Query;
 
 				if (query.SelectMultiple)
 				{
-					var nodes = doc.DocumentNode.SelectNodes(query.XPath);
+					var nodes = doc.DocumentNode.SelectNodes(query.CompiledQuery);
 					var multipleResults = new List<string?>();
 					result.Add(id, multipleResults);
 					if (nodes != null)
@@ -155,7 +155,7 @@ public partial class Script : ScriptBase
 				}
 				else
 				{
-					var node = doc.DocumentNode.SelectSingleNode(query.XPath);
+					var node = doc.DocumentNode.SelectSingleNode(query.CompiledQuery);
 					AddResult(query, node, val => result.Add(id, val));
 				}
 			}
@@ -163,7 +163,7 @@ public partial class Script : ScriptBase
 			return result;
 		}
 
-		private void AddResult(Query query, HtmlNode? node, Action<string?> add)
+		private void AddResult(HtmlQuery query, HtmlNode? node, Action<string?> add)
 		{
 			if (node is null)
 			{
@@ -171,14 +171,29 @@ public partial class Script : ScriptBase
 				return;
 			}
 
-			if (!string.IsNullOrWhiteSpace(query.Attribute))
+			switch (query.ResultMode)
 			{
-				var attr = node.Attributes[query.Attribute];
-				add(attr?.Value);
-			}
-			else
-			{
-				add(node.InnerHtml);
+				case ResultMode.OuterHtml:
+					add(node.OuterHtml);
+					return;
+				case ResultMode.Text:
+					add(node.InnerText);
+					return;
+				case ResultMode.Attribute:
+					if (!string.IsNullOrWhiteSpace(query.Attribute))
+					{
+						var attr = node.Attributes[query.Attribute];
+						add(attr?.Value);
+					}
+					else
+					{
+						add(null);
+					}
+					return;
+				case ResultMode.InnerHtml:
+				default:
+					add(node.InnerHtml);
+					return;
 			}
 		}
 	}
@@ -211,6 +226,10 @@ public partial class Script : ScriptBase
 					{ "type", "string" },
 				};
 
+				if (!(query.ResultMode == ResultMode.Text || query.ResultMode == ResultMode.Attribute))
+				{
+					querySchema.Add("format", "html");
+				}
 
 				if (query.SelectMultiple)
 				{
@@ -219,7 +238,6 @@ public partial class Script : ScriptBase
 					{
 						{ "type", "array" },
 						{ "items", itemSchema }
-
 					};
 				}
 
@@ -246,22 +264,34 @@ public partial class Script : ScriptBase
 	{
 		public string? Id { get; set; }
 		public string Query { get; set; } = null!;
+		[JsonIgnore]
 		public XPathExpression? CompiledQuery { get; private set; }
 		public bool SelectMultiple { get; set; }
+		[JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+		public ResultMode ResultMode { get; set; }
 		public string? Attribute { get; set; }
 
-		public void CompileXPath()
+		public void CompileQuery()
 		{
 			var query = Query;
 			// Try convert a css selector from Power Automate Desktop to Xpath Query
 			if (query.StartsWith("html >"))
 			{
-				query = "//" + Query.Replace(" > ", "/");
-				query = Regex.Replace(Query, @":eq\((?<no>\d)\)", m => "[" + (int.TryParse(m.Groups["no"].Value, out int no) ? no + 1 : m.Groups["no"].Value) + "]");
+				query = "//" + query.Replace(" > ", "/");
+				query = Regex.Replace(query, @":eq\((?<no>\d)\)", m => "[" + (int.TryParse(m.Groups["no"].Value, out int no) ? no + 1 : m.Groups["no"].Value) + "]");
 			}
 
 			CompiledQuery = XPathExpression.Compile(query);
 		}
+	}
+
+	public enum ResultMode
+	{
+		Unset,
+		InnerHtml,
+		OuterHtml,
+		Text,
+		Attribute
 	}
 }
 #nullable disable
