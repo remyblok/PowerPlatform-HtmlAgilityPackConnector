@@ -9,6 +9,7 @@
     ],
     "capabilities": [],
     "policyTemplateInstances": [],
-    "publisher": "Remy Blok"
+    "publisher": "Remy Blok",
+    "stackOwner": "HTML Agility Pack"
   }
 }
