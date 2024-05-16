@@ -102,6 +102,21 @@ public partial class Script : ScriptBase
 			string content = await Context.Request.Content.ReadAsStringAsync() ?? throw new ArgumentException("Request does not include a valid body");
 			Request = JsonConvert.DeserializeObject<QueryRequest>(content) ?? throw new ArgumentException("Request does not include a valid body");
 
+			try
+			{
+				Request.CompileScopeQuery();
+			}
+			catch (XPathException)
+			{
+				return new HttpResponseMessage(HttpStatusCode.BadRequest)
+				{
+					Content = CreateJsonContent(JsonConvert.SerializeObject(new
+					{
+						error = $"Invalid query for provided for the Scope"
+					}))
+				};
+			}
+
 			foreach (var query in Request.Queries)
 			{
 				try
@@ -129,7 +144,28 @@ public partial class Script : ScriptBase
 			};
 		}
 
-		private Dictionary<string, object?> QueryDocument(HtmlDocument doc)
+		private object QueryDocument(HtmlDocument doc)
+		{
+			if (Request!.CompiledScopeQuery != null)
+			{
+				var scopeNodes = doc.DocumentNode.SelectNodes(Request.CompiledScopeQuery);
+
+				List<Dictionary<string, object?>> results = new List<Dictionary<string, object?>>();
+				foreach (var item in scopeNodes)
+				{
+					HtmlDocument innerDoc = new HtmlDocument();
+					innerDoc.LoadHtml(item.OuterHtml);
+
+					results.Add(QueryNode(innerDoc.DocumentNode));
+				}
+
+				return results;
+			}
+			else
+				return QueryNode(doc.DocumentNode);
+		}
+
+		private Dictionary<string, object?> QueryNode(HtmlNode scopeNode)
 		{
 			var result = new Dictionary<string, object?>();
 
@@ -139,7 +175,7 @@ public partial class Script : ScriptBase
 
 				if (query.SelectMultiple)
 				{
-					var nodes = doc.DocumentNode.SelectNodes(query.CompiledQuery);
+					var nodes = scopeNode.SelectNodes(query.CompiledQuery);
 					var multipleResults = new List<string?>();
 					result.Add(id, multipleResults);
 					if (nodes != null)
@@ -152,7 +188,7 @@ public partial class Script : ScriptBase
 				}
 				else
 				{
-					var node = doc.DocumentNode.SelectSingleNode(query.CompiledQuery);
+					var node = scopeNode.SelectSingleNode(query.CompiledQuery);
 					AddResult(query, node, val => result.Add(id, val));
 				}
 			}
@@ -171,16 +207,16 @@ public partial class Script : ScriptBase
 			switch (query.ResultMode)
 			{
 				case ResultMode.OuterHtml:
-					add(node.OuterHtml);
+					add(node.OuterHtml.Trim());
 					return;
 				case ResultMode.Text:
-					add(node.InnerText);
+					add(node.InnerText.Trim());
 					return;
 				case ResultMode.Attribute:
 					if (!string.IsNullOrWhiteSpace(query.Attribute))
 					{
 						var attr = node.Attributes[query.Attribute];
-						add(attr?.Value);
+						add(attr?.Value?.Trim());
 					}
 					else
 					{
@@ -189,7 +225,7 @@ public partial class Script : ScriptBase
 					return;
 				case ResultMode.InnerHtml:
 				default:
-					add(node.InnerHtml);
+					add(node.InnerHtml.Trim());
 					return;
 			}
 		}
@@ -270,7 +306,19 @@ public partial class Script : ScriptBase
 		public string? Url { get; set; }
 		public string? Html { get; set; }
 
+		public string? ScopeQuery { get; set; }
+		[JsonIgnore]
+		public XPathExpression? CompiledScopeQuery { get; private set; }
+
 		public IEnumerable<HtmlQuery> Queries { get; set; } = null!;
+
+		public void CompileScopeQuery()
+		{
+			if (ScopeQuery != null)
+			{
+				CompiledScopeQuery = Helpers.CompileQuery(ScopeQuery);
+			}
+		}
 	}
 
 	public class HtmlQuery
@@ -286,7 +334,14 @@ public partial class Script : ScriptBase
 
 		public void CompileQuery()
 		{
-			var query = Query;
+			CompiledQuery = Helpers.CompileQuery(Query);
+		}
+	}
+
+	public static class Helpers
+	{
+		public static XPathExpression CompileQuery(string query)
+		{
 			// Try convert a css selector from Power Automate Desktop to Xpath Query
 			if (query.StartsWith("html >"))
 			{
@@ -294,7 +349,7 @@ public partial class Script : ScriptBase
 				query = Regex.Replace(query, @":eq\((?<no>\d)\)", m => "[" + (int.TryParse(m.Groups["no"].Value, out int no) ? no + 1 : m.Groups["no"].Value) + "]");
 			}
 
-			CompiledQuery = XPathExpression.Compile(query);
+			return XPathExpression.Compile(query);
 		}
 	}
 

@@ -24,12 +24,13 @@ namespace CustomCode.Tests
 			_loggerFactory?.Dispose();
 		}
 
-		private IScriptContext CreateContextWithQueryRequest(IEnumerable<Script.HtmlQuery> queries)
+		private IScriptContext CreateContextWithQueryRequest(IEnumerable<Script.HtmlQuery> queries, string? queryScope = null)
 		{
 			var request = new Script.QueryRequest()
 			{
 				Html = File.ReadAllText("Resources\\Test.html"),
-				Queries = queries
+				Queries = queries,
+				ScopeQuery = queryScope,
 			};
 
 			IScriptContext context = new UnitTestContext(_loggerFactory, "QueryDocumentFromString", null)
@@ -399,6 +400,41 @@ namespace CustomCode.Tests
 			JObject result = JObject.Parse(responseBody);
 			//Assert.IsTrue(result.ContainsKey("//h1"), "Expected //h1 property");
 			//Assert.AreEqual("Example Domain", result["//h1"]!.Value<string>());
+		}
+
+		[TestMethod]
+		public async Task TestScopedSelectorOpTable()
+		{
+			//arrange
+			var context = CreateContextWithQueryRequest(new List<Script.HtmlQuery>
+				{
+					new Script.HtmlQuery {
+						Id="columns",
+						Query = "//td",
+						SelectMultiple = true,
+						ResultMode = Script.ResultMode.Text
+					}
+				},
+				"//table/tr");
+			var sut = new Script.QueryDocumentFromStringProcessor(context);
+
+			//act
+			var response = await sut.Process(_testContext.CancellationTokenSource.Token).ConfigureAwait(false);
+
+			//assert
+			var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+			JArray array = JArray.Parse(responseBody);
+			Assert.AreEqual(6, array.Count);
+
+			JObject result = array[0] as JObject;
+
+			Assert.IsTrue(result.ContainsKey("columns"), "Expected query property");
+			Assert.IsTrue(result["columns"] is JArray, "Expected property to be array");
+			if (result["columns"] is JArray innerArray)
+			{
+				Assert.AreEqual(3, innerArray.Count);
+			}
 		}
 	}
 }
